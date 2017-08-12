@@ -1,6 +1,6 @@
 variable = "Hello world" 
 other_variable = 89 
-
+TEST = 19
 # this is a comment
 
 target_1:
@@ -17,3 +17,8 @@ target_2: target_1
 
 target_3: target_1 target_2
     "This is target 3"
+    echo {TEST}
+
+
+target_4: target_2
+    echo "argv test" {argv} 

@@ -75,9 +75,10 @@ class Target:
     def execute(self, global_scope):
         scope = global_scope.copy()
         scope.update(self.local_scope)
+        scope.update(os.environ)
+        scope['argv'] = ' '.join(sys.argv[2:])
         for command in self.commands:
             formatted_command = command.format(**scope)
-            print(scope)
             print(">>>", formatted_command)
             os.system(formatted_command)
 
@@ -129,12 +130,11 @@ if __name__ == "__main__":
         for dep in deps:
             assert dep in dependency_tree
 
-    # Ensure no cyclical dependencies
-    print(dependency_tree)
-    print(kahn(dependency_tree))
+    kahn(dependency_tree)
 
     # Cut graph by required target
     dependencies = kahn(cut(sys.argv[1], dependency_tree))
     for target in dependencies:
+        print('-------- Running target: {} -------------'.format(target))
         targets[target].execute(global_scope)
 
