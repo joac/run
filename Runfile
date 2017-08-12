@@ -1,0 +1,18 @@
+variable = "Hello world" 
+other_variable = 89 
+
+# this is a comment
+
+target_1:
+    "this is target 1"
+    echo {variable}
+
+
+target_2:
+    "This is target 2"
+    other_variable = local variable
+    echo {other_variable}
+    echo `pwd`
+
+target_3: target_1 target_2
+    "This is target 3"
