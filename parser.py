@@ -1,7 +1,8 @@
+#! /usr/bin/python -u
+import copy
+import sys
 import os
-import subprocess
 import re
-import shlex
 import sys
 
 
@@ -81,10 +82,59 @@ class Target:
             os.system(formatted_command)
 
 
+def kahn(dependency_tree):
+    dependency_tree = copy.deepcopy(dependency_tree)
+    zero_degree_nodes = {node for node, deps in dependency_tree.items() if not deps}
+    non_zero_nodes = {node: deps for node, deps in dependency_tree.items() if deps}
+    result = []
+    while zero_degree_nodes:
+        n = zero_degree_nodes.pop()
+        result.append(n)
+        for node, deps in non_zero_nodes.items():
+            if n in deps:
+                deps.remove(n)
+        new_zero_degree_nodes = {node for node, deps in non_zero_nodes.items() if not deps}
+        zero_degree_nodes.update(new_zero_degree_nodes)
+        non_zero_nodes = {node: deps for node, deps in non_zero_nodes.items() if deps}
+    if non_zero_nodes:
+        raise Exception('dependency_tree has cycles')
+
+    return result
+
+
+def cut(target, graph):
+    """Makes a cut of a full dependency graph"""
+    output = {}
+    to_process = [target]
+    while to_process:
+        current = to_process.pop(0)
+        output[current] = graph[current]
+        for dep in graph[current]:
+            if dep not in output:
+                to_process.append(dep)
+
+    return output
+
+
 if __name__ == "__main__":
     with open('Runfile') as fh:
         all_body = fh.read()
     global_scope, targets = parse(all_body)
-    for target in targets.values():
-        target.execute(global_scope)
+
+    dependency_tree = {
+        target.name: set(target.dependencies)
+        for target in targets.values()
+    }
+    for deps in dependency_tree.values():
+        for dep in deps:
+            assert dep in dependency_tree
+
+    # Ensure no cyclical dependencies
+    print(dependency_tree)
+    print(kahn(dependency_tree))
+
+    # Cut graph by required target
+    dependencies = kahn(cut(sys.argv[1], dependency_tree))
+    for target in dependencies:
+        targets[target].execute(global_scope)
 
