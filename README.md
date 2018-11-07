@@ -24,5 +24,5 @@ Try `run.py target_4 "Hello world"` with the provided example
 ## Todo
 - Autocompletion 
 - Better parser 
-- Print targets and docstrings when run is called without targets
+~- Print targets and docstrings when run is called without targets~
 - Support for pythons < `3.6`

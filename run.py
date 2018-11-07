@@ -56,7 +56,7 @@ def parse(all_body):
                 continue
             commands.append(line)
 
-        targets[name] = Target(name, dependencies, docstring, commands, local_scope)
+        targets[name] = Target(name, dependencies, docstring_value, commands, local_scope)
 
     return global_scope, targets
 
@@ -81,6 +81,10 @@ class Target:
             formatted_command = command.format(**scope)
             print(">>>", formatted_command)
             os.system(formatted_command)
+
+    def description(self):
+        return  "{}: {} deps: {}".format(self.name, self.docstring, self.dependencies)
+
 
 
 def kahn(dependency_tree):
@@ -133,7 +137,12 @@ if __name__ == "__main__":
     kahn(dependency_tree)
 
     # Cut graph by required target
-    dependencies = kahn(cut(sys.argv[1], dependency_tree))
+    try:
+        dependencies = kahn(cut(sys.argv[1], dependency_tree))
+    except IndexError:
+        print("\n".join((t.description() for t in targets.values())))
+        raise SystemExit(2)
+
     for target in dependencies:
         print('-------- Running target: {} -------------'.format(target))
         targets[target].execute(global_scope)
